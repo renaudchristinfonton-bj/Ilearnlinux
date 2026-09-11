@@ -29,6 +29,9 @@ THEME = {
     "ink": "#1E1E1E",          # texte courant
     "muted": "#6B6B6B",        # texte secondaire
     "seal_emoji": "★",
+    # Chemin optionnel vers le logo (PNG/JPG) : il est integre au certificat.
+    # Exemple : "/home/user/logo-espritropic.png" ou "assets/logo.png".
+    "logo_path": "",
 }
 
 CERTS_DIRNAME = "certificats"
@@ -230,6 +233,31 @@ def level_label(cert):
         first, last, days, 1 if last <= 1000 else 2)
 
 
+_LOGO_CACHE = {}
+
+
+def logo_data_uri():
+    """Logo encode en data-URI (mis en cache), ou chaine vide."""
+    path = (THEME.get("logo_path") or "").strip()
+    if not path or not os.path.isfile(path):
+        return ""
+    if path in _LOGO_CACHE:
+        return _LOGO_CACHE[path]
+    try:
+        with open(path, "rb") as fh:
+            raw = fh.read(512 * 1024)
+    except OSError:
+        return ""
+    ext = os.path.splitext(path)[1].lower()
+    mime = "image/png" if ext != ".jpg" and ext != ".jpeg" else "image/jpeg"
+    if ext == ".svg":
+        mime = "image/svg+xml"
+    import base64 as _b64
+    uri = "data:{};base64,{}".format(mime, _b64.b64encode(raw).decode("ascii"))
+    _LOGO_CACHE[path] = uri
+    return uri
+
+
 def render_svg(cert, name, code, date_text):
     t = THEME
     skills = "".join(
@@ -241,6 +269,7 @@ def render_svg(cert, name, code, date_text):
   <rect x="18" y="18" width="1086" height="758" fill="none" stroke="{primary}" stroke-width="6"/>
   <rect x="34" y="34" width="1054" height="726" fill="none" stroke="{secondary}" stroke-width="2"/>
   <rect x="34" y="34" width="1054" height="130" fill="{primary}"/>
+{logo}
   <text x="561" y="88" text-anchor="middle" font-family="Verdana, 'DejaVu Sans', sans-serif" font-size="34" font-weight="bold" letter-spacing="4" fill="#FFFFFF">{org}</text>
   <text x="561" y="126" text-anchor="middle" font-family="Verdana, 'DejaVu Sans', sans-serif" font-size="17" letter-spacing="2" fill="{secondary}">{program}</text>
   <text x="561" y="228" text-anchor="middle" font-family="Verdana, 'DejaVu Sans', sans-serif" font-size="26" letter-spacing="6" fill="{muted}">CERTIFICAT DE MAITRISE</text>
@@ -263,7 +292,15 @@ def render_svg(cert, name, code, date_text):
            program=escape(t["program"]), title=escape(cert["title"]),
            name=escape(name), skills=skills, seal=t["seal_emoji"],
            cert_id=escape(cert["id"]), level_label=escape(level_label(cert)),
-           date=escape(date_text), code=escape(code))
+           date=escape(date_text), code=escape(code), logo=logo_image_tag())
+
+
+def logo_image_tag():
+    uri = logo_data_uri()
+    if not uri:
+        return ""
+    return ('  <image x="58" y="50" width="98" height="98" preserveAspectRatio="xMidYMid meet" '
+            'href="{}"/>').format(escape(uri, {'"': "&quot;"}))
 
 
 def render_html(cert, name, code, date_text, svg):

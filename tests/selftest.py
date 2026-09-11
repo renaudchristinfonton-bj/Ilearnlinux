@@ -312,6 +312,20 @@ def t_certs():
         prog["done"] = list(range(1, 61))
         ids = [c["id"] for c in certs_mod.newly_earned(prog)]
         check("certs : CERT-02 systeme de fichiers", ids == ["CERT-02"], str(ids))
+        # Logo optionnel : un PNG 1x1 integre en data-URI dans le SVG.
+        png1 = (b"\x89PNG\r\n\x1a\n\x00\x00\x00\rIHDR\x00\x00\x00\x01\x00\x00\x00\x01"
+                b"\x08\x02\x00\x00\x00\x90wS\xde\x00\x00\x00\x0cIDATx\x9cc\xf8\x0f"
+                b"\x00\x01\x01\x01\x00\x1b\x0c\x02\x9d\x00\x00\x00\x00IEND\xaeB`\x82")
+        logo_path = os.path.join(d, "logo.png")
+        with open(logo_path, "wb") as fh:
+            fh.write(png1)
+        old_logo = certs_mod.THEME.get("logo_path", "")
+        certs_mod.THEME["logo_path"] = logo_path
+        try:
+            svg_logo = certs_mod.render_svg(certs_mod.CERTS[1], "Test Eleve", "ILEARN-AAAA-BBBB", "11/09/2026")
+            check("certs : logo integre en data-URI", "data:image/png;base64," in svg_logo)
+        finally:
+            certs_mod.THEME["logo_path"] = old_logo
     finally:
         progress.BASE_DIR = old_base
         progress.PROGRESS_FILE = os.path.join(old_base, "progress.json")
