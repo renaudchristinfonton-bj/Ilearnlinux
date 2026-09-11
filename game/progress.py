@@ -21,6 +21,8 @@ def default_progress():
         "xp": 0,
         "history": {},
         "streak": {"current": 0, "best": 0, "last_day": None},
+        "profile": {},
+        "certs": {},
         "assists": {},
         "started_at": datetime.datetime.now().isoformat(timespec="seconds"),
     }

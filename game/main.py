@@ -9,7 +9,7 @@ import sys
 sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
 from game import __version__  # noqa: E402
-from game import engine, levels, progress, ui  # noqa: E402
+from game import certs, engine, levels, progress, ui  # noqa: E402
 
 
 def cmd_play(_args):
@@ -62,6 +62,56 @@ def cmd_goto(args):
     prog["current"] = args.n
     progress.save(prog)
     ui.success("Prochain niveau : {} (pratique libre, l'XP compte quand meme !).".format(args.n))
+
+
+def cmd_certs(_args):
+    progress.ensure_dirs()
+    prog = progress.load()
+    ui.banner()
+    print()
+    ui.title("MES CERTIFICATS")
+    earned = prog.get("certs", {}) or {}
+    if not earned:
+        ui.info("Aucun certificat pour l'instant : termine un bloc complet (ex : niveaux 1-10) !")
+    for cid in sorted(earned):
+        rec = earned[cid]
+        cert = certs.get_cert(cid)
+        slug = cert["slug"] if cert else cid.lower()
+        svg = os.path.join(progress.BASE_DIR, "certificats", "{}-{}.svg".format(cid, slug))
+        print(ui.paint("  [X] {} ({})".format(rec.get("title", cid), cid), ui.C.GREEN + ui.C.BOLD))
+        print("      Delivre le {} a {} — code {}".format(rec.get("at", "?"), rec.get("name", "?"),
+                                                          rec.get("code", "?")))
+        print("      {}".format(svg if os.path.isfile(svg) else "(fichier regenere a la prochaine remise)"))
+    print()
+    ui.title("EN ROUTE VERS")
+    for cert, n, total in certs.next_certificates(prog, limit=5):
+        bar = ui.progress_bar(n, total, size=12)
+        print("  {} {} — {}/{} {}".format(cert["id"], cert["title"], n, total, bar))
+    print()
+    ui.info("Astuce : ./ilearn profil \"Ton Nom\" pour personnaliser tes certificats.")
+
+
+def cmd_profile(args):
+    progress.ensure_dirs()
+    prog = progress.load()
+    if args.name:
+        name = certs.set_profile_name(prog, args.name)
+        ui.success("Nom enregistre : {} (il figurera sur tes certificats).".format(name))
+    else:
+        name = certs.profile_name(prog)
+        if name:
+            ui.info("Nom sur les certificats : {}".format(name))
+        else:
+            ui.info("Aucun nom defini : ./ilearn profil \"Ton Nom\" (ou il sera demande au 1er certificat).")
+
+
+def cmd_verify(args):
+    prog = progress.load()
+    cert, name = certs.verify_code(prog, args.code)
+    if cert is None:
+        ui.error("Code inconnu sur cette machine.")
+        return
+    ui.success("Code valide : {} ({}) delivre a {}.".format(cert["title"], cert["id"], name or "?"))
 
 
 def cmd_reset(_args):
@@ -132,6 +182,14 @@ def build_parser():
     goto = sub.add_parser("goto", help="Aller a un niveau (pratique libre)")
     goto.add_argument("n", type=int, help="numero du niveau")
     goto.set_defaults(func=cmd_goto)
+    sub.add_parser("certificats", help="Voir mes certificats + progression").set_defaults(func=cmd_certs)
+    sub.add_parser("certs", help="Alias de certificats").set_defaults(func=cmd_certs)
+    prof = sub.add_parser("profil", help="Voir/definir le nom des certificats")
+    prof.add_argument("name", nargs="?", default="", help="nom a faire figurer")
+    prof.set_defaults(func=cmd_profile)
+    ver = sub.add_parser("verifier", help="Verifier un code de certificat")
+    ver.add_argument("code", help="code ILEARN-XXXX-XXXX")
+    ver.set_defaults(func=cmd_verify)
     sub.add_parser("reset", help="Tout recommencer").set_defaults(func=cmd_reset)
     sub.add_parser("doctor", help="Verifier l'installation").set_defaults(func=cmd_doctor)
     return parser

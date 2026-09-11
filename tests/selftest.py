@@ -274,6 +274,49 @@ def t_john():
     check("john exige --wordlist", p.returncode != 0 and "wordlist" in (p.stdout + p.stderr).lower())
 
 
+def t_certs():
+    from game import certs as certs_mod  # noqa: E402
+    d = tmpdir()
+    old_base = progress.BASE_DIR
+    progress.BASE_DIR = d
+    progress.PROGRESS_FILE = os.path.join(d, "progress.json")
+    try:
+        prog = progress.load()
+        check("certs : profil vide par defaut", certs_mod.profile_name(prog) == "")
+        check("certs : aucun nouveau au debut", certs_mod.newly_earned(prog) == [])
+        prog["done"] = list(range(1, 11))
+        new = certs_mod.newly_earned(prog)
+        check("certs : CERT-01 detecte", [c["id"] for c in new] == ["CERT-01"])
+        nxt = certs_mod.next_certificates(prog, limit=1)
+        check("certs : prochain = CERT-02", nxt and nxt[0][0]["id"] == "CERT-02")
+        name = certs_mod.ask_profile_name(prog, ask_fn=lambda p: "Test Eleve")
+        check("certs : nom demande une fois", name == "Test Eleve")
+        check("certs : nom memorise", certs_mod.ask_profile_name(prog, ask_fn=lambda p: "X") == "Test Eleve")
+        code, svg, html = certs_mod.issue(prog, new[0], name, "11/09/2026")
+        check("certs : fichiers generes", os.path.isfile(svg) and os.path.isfile(html))
+        with open(svg, encoding="utf-8") as fh:
+            content = fh.read()
+        check("certs : SVG personnalise",
+              "Test Eleve" in content and code in content and "CERT-01" in content)
+        import xml.dom.minidom
+        try:
+            xml.dom.minidom.parse(svg)
+            wellformed = True
+        except Exception:
+            wellformed = False
+        check("certs : SVG bien forme", wellformed)
+        check("certs : plus rien a remettre", certs_mod.newly_earned(prog) == [])
+        cert, who = certs_mod.verify_code(progress.load(), code)
+        check("certs : code verifiable", cert is not None and cert["id"] == "CERT-01" and who == "Test Eleve")
+        check("certs : code inconnu rejete", certs_mod.verify_code(prog, "ILEARN-XXXX-XXXX")[0] is None)
+        prog["done"] = list(range(1, 61))
+        ids = [c["id"] for c in certs_mod.newly_earned(prog)]
+        check("certs : CERT-02 systeme de fichiers", ids == ["CERT-02"], str(ids))
+    finally:
+        progress.BASE_DIR = old_base
+        progress.PROGRESS_FILE = os.path.join(old_base, "progress.json")
+
+
 def t_fakeremote_direct():
     from game import fakeremote  # noqa: E402
     fs = {"home": {"agent": {"flag.txt": "FLAG{x}\n", ".c": {"n": "w\n"}}}}
@@ -292,7 +335,7 @@ def t_fakeremote_direct():
 def main():
     global PASS, FAIL
     print("== ILearnLinux : auto-tests ==")
-    for func in (t_levels, t_checker, t_progress, t_engine, t_terminal, t_relay, t_nmap, t_ssh, t_john, t_fakeremote_direct):
+    for func in (t_levels, t_checker, t_progress, t_engine, t_terminal, t_relay, t_nmap, t_ssh, t_john, t_certs, t_fakeremote_direct):
         print("-- {} --".format(func.__name__))
         try:
             func()

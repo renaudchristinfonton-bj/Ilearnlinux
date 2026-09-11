@@ -84,11 +84,25 @@ Programme détaillé jour par jour : [`docs/CURRICULUM.md`](docs/CURRICULUM.md).
 **Chaque 10ᵉ niveau est un BOSS** (révision, gros XP). Le jeu suit ton **XP**, ta **série quotidienne** 🔥,
 tes **badges** et ton **rang** (de *Curieux du terminal* 🌱 à *AGENT CYBER D'ÉLITE* 👑).
 
+## 🎓 Certificats de maîtrise
+
+Termine **tous les niveaux d'un bloc** et reçois un **certificat personnalisé** à ton nom
+(ex : *Système de fichiers*, *Réseau*, *Cyber — Forensics & web*... 17 certificats au total,
+dont le prestigieux *Agent Cyber certifié* 🏆).
+
+- Document généré automatiquement (SVG + HTML imprimable en PDF), aux couleurs d'**ESPRITROPIC COMMUNITY**.
+- Chaque certificat porte un **code de vérification unique** (`./ilearn verifier ILEARN-XXXX-XXXX`).
+- `./ilearn certificats` : voir ses certificats + la progression vers les prochains.
+- `./ilearn profil "Ton Nom"` : le nom qui figurera sur les documents.
+
 ## 🕹️ Commandes
 
 ```
 ./ilearn play        Jouer (reprend où tu t'es arrêté)
-./ilearn dashboard   XP, série, carte des 110 jours, badges
+./ilearn dashboard   XP, série, carte des 110 jours, badges, certificats
+./ilearn certificats Mes certificats + progression vers les prochains
+./ilearn profil      Voir/définir le nom des certificats
+./ilearn verifier    Vérifier un code de certificat
 ./ilearn hint        Indice pour le niveau courant
 ./ilearn solution    Solution (XP réduits, mais on apprend quand même)
 ./ilearn mission     Revoir la mission en cours

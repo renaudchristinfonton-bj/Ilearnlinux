@@ -11,7 +11,7 @@ import re
 import shutil
 import sys
 
-from . import checker, levels, progress, ui
+from . import certs, checker, levels, progress, ui
 from .terminal import Terminal
 
 # Commandes du jeu (interceptees, jamais executees par bash).
@@ -274,9 +274,18 @@ def play_level(level, prog, stash):
                 progress.record_completion(prog, level["id"], xp, len(typed), hints_used, solution_used)
                 ui.celebrate(level, xp, prog.get("xp", 0), elapsed, len(typed),
                              prog.get("streak", {}).get("current", 0), faults)
+                for cert in certs.newly_earned(prog):
+                    name = certs.ask_profile_name(prog)
+                    code, svg_path, _html = certs.issue(prog, cert, name, certs_today())
+                    ui.cert_celebrate(cert, code, svg_path)
                 return "done"
     finally:
         term.stop()
+
+
+def certs_today():
+    import datetime
+    return datetime.date.today().strftime("%d/%m/%Y")
 
 
 def play_loop(start_level=None):

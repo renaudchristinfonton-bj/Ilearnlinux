@@ -205,6 +205,20 @@ def celebrate(level, xp_earned, total_xp, elapsed_s, n_commands, streak, faults=
     hr("*")
 
 
+def cert_celebrate(cert, code, svg_path):
+    from . import certs as certs_mod
+    print()
+    print(paint("  +" + "=" * 72 + "+", C.YELLOW + C.BOLD))
+    print(paint("  |" + "  CERTIFICAT DE MAITRISE DECERNE !  ".center(72) + "|", C.YELLOW + C.BOLD))
+    print(paint("  +" + "=" * 72 + "+", C.YELLOW + C.BOLD))
+    print(paint("   {} ({})".format(cert["title"], cert["id"]), C.BOLD + C.CYAN))
+    print("   Competences : {}".format(", ".join(cert["skills"][:4])))
+    print("   {}".format(certs_mod.level_label(cert)))
+    print(paint("   Code de verification : {}".format(code), C.GREEN + C.BOLD))
+    print("   Document : {}".format(svg_path))
+    print("   (Ouvre le .html du meme nom pour imprimer / enregistrer en PDF.)")
+
+
 def show_hint(hints, used):
     if used < len(hints):
         print()
@@ -260,6 +274,21 @@ def dashboard(progress, total_levels, max_day):
     for icon, name, earned in compute_badges(done_set, best):
         mark = paint("[X]", C.GREEN) if earned else paint("[ ]", C.DIM)
         print("    {} {} {}".format(mark, icon, name))
+    earned = progress.get("certs", {}) or {}
+    if earned:
+        print(paint("  Certificats ({} — ./ilearn certificats pour le detail) :".format(len(earned)), C.BOLD))
+        for cid in sorted(earned):
+            print("    {} {}".format(paint("[X]", C.GREEN),
+                                     earned[cid].get("title", cid)))
+    else:
+        print(paint("  Certificats : aucun pour l'instant — termine un bloc pour le premier !", C.DIM))
+    from . import certs as certs_mod
+    nxt_certs = certs_mod.next_certificates(progress, limit=2)
+    if nxt_certs:
+        print(paint("  En route vers :", C.BOLD))
+        for cert, n, total in nxt_certs:
+            print("    {} {} — {}/{} ({})".format(paint("->", C.YELLOW), cert["title"], n, total,
+                                                  "./ilearn play pour avancer"))
     nxt = progress.get("current", 1)
     print()
     print(paint("  Prochain niveau : {}  ->  ./ilearn play".format(nxt if nxt <= total_levels else "TERMINE !"), C.CYAN))
