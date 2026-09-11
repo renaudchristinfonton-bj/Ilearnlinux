@@ -1,1 +1,1 @@
-"""Packs de niveaux : jours 1-20 ecrits a la main, jours 21-100 generes (voir generated.py)."""
+"""Packs de niveaux : jours 1-30 ecrits a la main, jours 31-100 generes (voir generated.py)."""

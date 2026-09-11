@@ -111,8 +111,8 @@ Les flemmards sont les bienvenus : petit pas chaque jour > rush puis abandon.
 
 ## 🤝 Contribuer
 
-- Les jours 1–20 sont écrits à la main dans `game/packs/day01.py` … `day10.py` et `days11_20.py`.
-- Les jours 21–100 sont générés par `game/packs/generated.py` (modèles + variantes, en cours d'enrichissement).
+- Les jours 1–30 sont écrits à la main (`game/packs/day01.py` … `day10.py`, `days11_20.py`, `days21_30.py`).
+- Les jours 31–100 sont générés par `game/packs/generated.py` (modèles + variantes, en cours d'enrichissement).
 - Pour ajouter/enrichir un niveau : inspire-toi d'un niveau existant (même format),
   puis lance `python3 tests/selftest.py` (doit rester à 1000 niveaux valides).
 - Idées bienvenues : nouveaux blocs (Docker, Git, SQL...), traductions, mode multijoueur !

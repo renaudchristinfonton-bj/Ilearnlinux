@@ -3,6 +3,7 @@
 from .checker import CHECK_TYPES
 from .packs import day01, day02, day03, day04, day05, day06, day07, day08, day09, day10
 from .packs import days11_20
+from .packs import days21_30
 from .packs import generated
 
 _CACHE = None
@@ -15,8 +16,9 @@ def all_levels():
         for pack in (day01, day02, day03, day04, day05, day06, day07, day08, day09, day10):
             levels.extend(pack.LEVELS)
         levels.extend(days11_20.LEVELS)
-        # Blocs encore generes (jours 21-100) : on exclut le bloc B enrichi a la main.
-        levels.extend(lv for lv in generated.build() if not 101 <= lv["id"] <= 200)
+        levels.extend(days21_30.LEVELS)
+        # Blocs encore generes (jours 31-100) : on exclut les blocs enrichis a la main.
+        levels.extend(lv for lv in generated.build() if not 101 <= lv["id"] <= 300)
         levels.sort(key=lambda lv: lv["id"])
         _CACHE = levels
     return _CACHE
