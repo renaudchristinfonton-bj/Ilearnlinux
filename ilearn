@@ -1,0 +1,13 @@
+#!/bin/bash
+# ILearnLinux — lanceur du jeu.
+# Usage : ./ilearn play|dashboard|hint|solution|mission|goto|reset|doctor
+set -euo pipefail
+
+ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+
+if ! command -v python3 >/dev/null 2>&1; then
+  echo "Erreur : python3 est requis (sudo apt install python3)." >&2
+  exit 1
+fi
+
+exec python3 "$ROOT/game/main.py" "$@"
