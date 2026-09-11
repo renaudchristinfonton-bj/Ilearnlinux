@@ -2,8 +2,8 @@
 
 Chaque niveau declare une liste de "checks" que le moteur evalue en continu
 en observant :
-  - l'arene (le dossier de travail du niveau, cote onglet JOUEUR),
-  - le journal des commandes tapees par le joueur (via tools/hook.sh).
+  - le dossier de mission (ou s'executent les vraies commandes du joueur),
+  - les commandes tapees et les dossiers visites pendant le niveau.
 
 Types de checks supportes :
   command        : une commande tapee correspond a la regex "pattern"

@@ -1,9 +1,8 @@
-"""Chargement et validation des 1000 niveaux."""
+"""Chargement et validation des niveaux (Saison 1 + Saison 2...)."""
 
 from .checker import CHECK_TYPES
 from .packs import day01, day02, day03, day04, day05, day06, day07, day08, day09, day10
-from .packs import days11_20
-from .packs import days21_30
+from .packs import days11_20, days21_30, days101_110
 from .packs import generated
 
 _CACHE = None
@@ -17,11 +16,20 @@ def all_levels():
             levels.extend(pack.LEVELS)
         levels.extend(days11_20.LEVELS)
         levels.extend(days21_30.LEVELS)
-        # Blocs encore generes (jours 31-100) : on exclut les blocs enrichis a la main.
+        # Blocs generes de Saison 1 non encore enrichis (jours 31-100).
         levels.extend(lv for lv in generated.build() if not 101 <= lv["id"] <= 300)
+        levels.extend(days101_110.LEVELS)
         levels.sort(key=lambda lv: lv["id"])
         _CACHE = levels
     return _CACHE
+
+
+def total():
+    return len(all_levels())
+
+
+def max_day():
+    return max(lv["day"] for lv in all_levels())
 
 
 def get_level(level_id):
@@ -36,10 +44,8 @@ def validate():
     errors = []
     levels = all_levels()
     ids = [lv.get("id") for lv in levels]
-    if len(ids) != 1000:
-        errors.append("attendu 1000 niveaux, trouve {}".format(len(ids)))
-    if sorted(ids) != list(range(1, 1001)):
-        errors.append("les ids doivent couvrir exactement 1..1000 sans trou ni doublon")
+    if sorted(ids) != list(range(1, len(ids) + 1)):
+        errors.append("les ids doivent couvrir 1..{} sans trou ni doublon".format(len(ids)))
     required = ("id", "day", "title", "lesson", "mission", "checks", "hints", "solution", "xp")
     for lv in levels:
         lid = lv.get("id", "?")
@@ -58,4 +64,6 @@ def validate():
         for s in lv.get("setup", []):
             if not any(k in s for k in ("mkdir", "file", "chmod", "symlink")):
                 errors.append("niveau {} : action setup inconnue {}".format(lid, s))
+        if "scenario" in lv and not isinstance(lv["scenario"], dict):
+            errors.append("niveau {} : scenario invalide".format(lid))
     return errors

@@ -5,7 +5,6 @@ import argparse
 import os
 import shutil
 import sys
-import time
 
 sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
@@ -21,7 +20,7 @@ def cmd_play(_args):
 def cmd_dashboard(_args):
     progress.ensure_dirs()
     ui.banner()
-    ui.dashboard(progress.load())
+    ui.dashboard(progress.load(), levels.total(), levels.max_day())
 
 
 def cmd_hint(_args):
@@ -57,8 +56,8 @@ def cmd_mission(_args):
 
 def cmd_goto(args):
     prog = progress.load()
-    if not 1 <= args.n <= 1000:
-        ui.error("le niveau doit etre entre 1 et 1000.")
+    if not 1 <= args.n <= levels.total():
+        ui.error("le niveau doit etre entre 1 et {}.".format(levels.total()))
         return
     prog["current"] = args.n
     progress.save(prog)
@@ -86,37 +85,35 @@ def cmd_doctor(_args):
         print("  {} {}{}".format(status, name, " — {}".format(detail) if detail else ""))
 
     check("Python {}".format(sys.version.split()[0]), sys.version_info >= (3, 8))
+    check("Bash", shutil.which("bash") is not None)
     errors = levels.validate()
-    check("1000 niveaux valides", not errors, errors[0] if errors else "aucune erreur")
+    check("{} niveaux valides".format(levels.total()), not errors, errors[0] if errors else "aucune erreur")
     if errors:
         ok = False
         for err in errors[:10]:
             print("       - {}".format(err))
     check("Dossier de progression", os.path.isdir(progress.BASE_DIR), progress.BASE_DIR)
-    check("Arene accessible en ecriture", os.access(progress.ARENA_DIR, os.W_OK), progress.ARENA_DIR)
-    # Outils systeme utilises par certains niveaux (lecture seule / bac a sable).
+    check("Missions accessibles en ecriture", os.access(progress.ARENA_DIR, os.W_OK), progress.ARENA_DIR)
+    # Outils systeme utilises par les missions (vraies commandes !).
     tools = ["tar", "gzip", "find", "grep", "sort", "ps", "ping", "ip", "ss",
              "getent", "curl", "ssh", "ssh-keygen", "scp", "top", "free", "lscpu",
              "lsblk", "du", "df", "wc", "cut", "tr", "tee", "nohup", "pgrep",
-             "crontab", "journalctl", "systemctl", "dmesg", "ln"]
+             "journalctl", "systemctl", "dmesg", "ln", "file", "strings",
+             "md5sum", "sha256sum", "base64"]
     missing = [t for t in tools if shutil.which(t) is None]
     check("Outils systeme", not missing,
-          "tous presents" if not missing else "manquants : {} (sudo apt install ...)".format(", ".join(missing)))
-    # Hook : journal recent ?
-    try:
-        age = time.time() - os.path.getmtime(progress.COMMANDS_LOG)
-        fresh = age < 3600
-        check("Hook joueur", fresh,
-              "journal actif (derniere commande il y a {}s)".format(int(age)) if fresh
-              else "aucune commande depuis 1h — pense a 'source tools/hook.sh' dans l'onglet JOUEUR")
-    except OSError:
-        check("Hook joueur", True, "journal pret (aucune commande encore)")
+          "tous presents" if not missing else "manquants : {} (ex: sudo apt install ...)".format(", ".join(missing)))
+    # Cibles simulees (fournies par le jeu, zero installation).
+    fakebin = os.path.join(os.path.dirname(os.path.abspath(__file__)), "fakebin")
+    sims = ["nmap", "ssh", "john"]
+    sims_ok = all(os.access(os.path.join(fakebin, s), os.X_OK) for s in sims)
+    check("Simulateurs (nmap/ssh/john)", sims_ok, "inclus dans le jeu, prets" if sims_ok else "verifie game/fakebin")
     prog = progress.load()
     check("Progression", True, "niveau {}, {} XP, serie {} j".format(
         prog.get("current", 1), prog.get("xp", 0), prog.get("streak", {}).get("current", 0)))
     print()
     if ok:
-        ui.success("Tout est pret : ouvre 2 onglets et lance ./ilearn play (v{}) !".format(__version__))
+        ui.success("Tout est pret : lance ./ilearn play (v{}) et deviens agent !".format(__version__))
     else:
         ui.error("Des problemes bloquent le jeu : corrige-les puis relance ./ilearn doctor.")
 
@@ -124,16 +121,16 @@ def cmd_doctor(_args):
 def build_parser():
     parser = argparse.ArgumentParser(
         prog="ilearn",
-        description="ILearnLinux — deviens Admin Sys Linux en 100 jours, 1000 niveaux de jeu.")
+        description="ILearnLinux — du terminal a Agent Cyber, en jouant avec de vraies commandes.")
     sub = parser.add_subparsers(dest="command")
-    sub.add_parser("play", help="Jouer (surveillance continue de l'arene)").set_defaults(func=cmd_play)
+    sub.add_parser("play", help="Jouer (terminal de mission interactif)").set_defaults(func=cmd_play)
     sub.add_parser("dashboard", help="Tableau de bord : XP, serie, badges").set_defaults(func=cmd_dashboard)
     sub.add_parser("stats", help="Alias de dashboard").set_defaults(func=cmd_dashboard)
     sub.add_parser("hint", help="Indice pour le niveau courant").set_defaults(func=cmd_hint)
     sub.add_parser("solution", help="Solution du niveau courant").set_defaults(func=cmd_solution)
     sub.add_parser("mission", help="Reafficher la mission courante").set_defaults(func=cmd_mission)
     goto = sub.add_parser("goto", help="Aller a un niveau (pratique libre)")
-    goto.add_argument("n", type=int, help="numero du niveau (1-1000)")
+    goto.add_argument("n", type=int, help="numero du niveau")
     goto.set_defaults(func=cmd_goto)
     sub.add_parser("reset", help="Tout recommencer").set_defaults(func=cmd_reset)
     sub.add_parser("doctor", help="Verifier l'installation").set_defaults(func=cmd_doctor)

@@ -1,4 +1,4 @@
-"""Affichage du jeu : couleurs ANSI, cartes de niveaux, celebrations. (stdlib uniquement)"""
+"""Affichage du jeu : couleurs ANSI, panneaux de mission, mentor, celebrations."""
 
 import os
 import shutil
@@ -61,6 +61,10 @@ RANKS = [
     (751, "Gardien du systeme"),
     (901, "Futur Admin Sys"),
     (1000, "ADMIN SYS LINUX"),
+    (1001, "Agent Cyber stagiaire"),
+    (1041, "Agent Cyber"),
+    (1081, "Agent Cyber confirme"),
+    (1100, "AGENT CYBER D'ELITE"),
 ]
 
 
@@ -70,6 +74,12 @@ def rank_for(level_id):
         if level_id >= threshold:
             rank = name
     return rank
+
+
+def season_for(level_id):
+    if level_id <= 1000:
+        return "Saison 1 - Linux"
+    return "Saison 2 - Agent Cyber"
 
 
 BANNER = r"""
@@ -83,8 +93,8 @@ BANNER = r"""
 
 def banner():
     print(paint(BANNER, C.GREEN + C.BOLD))
-    print(paint("  Deviens Admin Sys Linux en 100 jours - 1000 niveaux, 100% pratique.", C.BOLD))
-    print(paint("  Le jeu regarde, toi tu tapes. Bon courage, futur admin !", C.DIM))
+    print(paint("  Saison 1 : deviens Admin Sys Linux - Saison 2 : deviens Agent Cyber.", C.BOLD))
+    print(paint("  Un terminal, des vraies commandes, un mentor. Bon courage, futur agent !", C.DIM))
 
 
 def progress_bar(done, total, size=30):
@@ -94,36 +104,54 @@ def progress_bar(done, total, size=30):
     return "[{}{}] {}/{}".format("#" * filled, "." * (size - filled), done, total)
 
 
-def level_card(level, ws_path, total_xp, streak):
+def mission_panel(level, mission_path, total_xp, streak, total):
     lid = level["id"]
     day = level["day"]
     n_checks = len(level.get("checks", []))
     print()
     hr("=")
-    head = " NIVEAU {}/1000  -  JOUR {}/100  -  {} ".format(lid, day, rank_for(lid))
+    head = " NIVEAU {}/{} - JOUR {} - {} ".format(lid, total, day, rank_for(lid))
     if level.get("boss"):
         print(paint("*** NIVEAU BOSS ***" + head + "***", C.BOLD + C.YELLOW))
     else:
         print(paint(head, C.BOLD + C.MAGENTA))
+    print(paint(season_for(lid), C.DIM))
     hr("=")
     print(paint("Titre : ", C.BOLD) + level["title"] + paint("   ({} XP)".format(level.get("xp", 10)), C.YELLOW))
-    print(paint("Progression : ", C.DIM) + progress_bar(lid - 1, 1000)
+    print(paint("Progression : ", C.DIM) + progress_bar(lid - 1, total)
           + paint("   |   Total XP : {}   |   Serie : {} jour(s)".format(total_xp, streak), C.DIM))
     hr()
     if level.get("story"):
         print(paint("Histoire", C.CYAN + C.BOLD))
         print(wrap(level["story"], prefix="  "))
         print()
-    print(paint("Lecon", C.CYAN + C.BOLD))
+    print(paint("Cours", C.CYAN + C.BOLD))
     print(wrap(level["lesson"], prefix="  "))
     print()
     print(paint("Ta mission", C.GREEN + C.BOLD))
     print(wrap(level["mission"], prefix="  >> "))
     print()
-    print(paint("Arene (onglet JOUEUR) :", C.BOLD))
-    print(paint("  cd {}".format(ws_path), C.YELLOW))
-    print(paint("Objectifs a valider : {}   |   (h + Entree = indice, s + Entree = solution, q + Entree = quitter)".format(n_checks), C.DIM))
+    print(paint("Dossier de mission : ", C.BOLD) + mission_path)
+    print(paint("Objectifs : {}   |   aide = commandes du jeu (indice, solution, quitter...)".format(n_checks), C.DIM))
     hr()
+
+
+def game_help():
+    print()
+    print(paint("Commandes du jeu (a taper a la place d'une commande Linux) :", C.CYAN + C.BOLD))
+    print("  aide      afficher ce message")
+    print("  mission   revoir la mission en cours")
+    print("  cours     revoir le cours du niveau")
+    print("  indice    demander un indice (-2 XP)")
+    print("  solution  voir la solution (XP reduits)")
+    print("  quitter   faire une pause (progression sauvegardee)")
+    print(paint("Tout le reste est execute comme une VRAIE commande Linux. Amuse-toi !", C.DIM))
+
+
+def lesson_card(level):
+    print()
+    print(paint("Cours - {}".format(level["title"]), C.CYAN + C.BOLD))
+    print(wrap(level["lesson"], prefix="  "))
 
 
 def mission_recap(level):
@@ -132,15 +160,25 @@ def mission_recap(level):
     print(wrap(level["mission"], prefix="  >> "))
 
 
-def tick(states):
+def mentor(text):
+    print(paint("  [MENTOR] ", C.MAGENTA + C.BOLD) + text)
+
+
+def objectives(states):
     symbols = []
     for ok in states:
         symbols.append(paint("OK", C.GREEN + C.BOLD) if ok else paint(".", C.DIM))
-    line = "  Objectifs : [{}]".format("][".join(symbols))
-    print("\r" + line + " ", end="", flush=True)
+    print("  Objectifs : [{}]".format("][".join(symbols)))
 
 
-def celebrate(level, xp_earned, total_xp, elapsed_s, n_commands, streak):
+def prompt_str(display_path):
+    return "{}@{}:{}$ ".format(
+        paint("agent", C.GREEN + C.BOLD),
+        paint("cyber", C.CYAN + C.BOLD),
+        paint(display_path, C.BLUE + C.BOLD))
+
+
+def celebrate(level, xp_earned, total_xp, elapsed_s, n_commands, streak, faults=0):
     print()
     hr("*")
     art = [
@@ -154,13 +192,16 @@ def celebrate(level, xp_earned, total_xp, elapsed_s, n_commands, streak):
     for line in art:
         print(paint(line, C.YELLOW + C.BOLD))
     mins, secs = divmod(int(elapsed_s), 60)
-    print(paint("  Temps : {}m {:02d}s   |   Commandes tapees : {}   |   Total XP : {}   |   Serie : {} jour(s)".format(
-        mins, secs, n_commands, total_xp, streak), C.CYAN))
+    print(paint("  Temps : {}m {:02d}s   |   Commandes : {}   |   Fautes : {}   |   Total XP : {}   |   Serie : {} j".format(
+        mins, secs, n_commands, faults, total_xp, streak), C.CYAN))
+    if faults == 0:
+        print(paint("  SANS FAUTE ! Precision d'agent d'elite.", C.GREEN + C.BOLD))
     if level["id"] % 10 == 0:
-        print(paint("  JOUR {} TERMINE ! Tu progresses vite. Demain, on continue.".format(level["day"]), C.GREEN + C.BOLD))
+        print(paint("  JOUR {} TERMINE ! Demain, on continue.".format(level["day"]), C.GREEN + C.BOLD))
     if level["id"] == 1000:
         print()
-        print(paint("  TU ES OFFICIELLEMENT ADMIN SYS LINUX. CHAPEAU, LEGENDE.", C.BOLD + C.MAGENTA))
+        print(paint("  SAISON 1 TERMINEE : tu es ADMIN SYS LINUX. La Saison 2 (Agent Cyber) t'attend !",
+                    C.BOLD + C.MAGENTA))
     hr("*")
 
 
@@ -170,7 +211,7 @@ def show_hint(hints, used):
         print(paint("Indice {}/{} : ".format(used + 1, len(hints)), C.YELLOW + C.BOLD) + hints[used])
         print(paint("  (-2 XP sur ce niveau)", C.DIM))
         return True
-    print(paint("  Plus d'indices pour ce niveau. Tu peux demander la solution (s).", C.DIM))
+    print(paint("  Plus d'indices pour ce niveau. Tu peux demander la solution (tape 'solution').", C.DIM))
     return False
 
 
@@ -180,7 +221,7 @@ def show_solution(solution):
     print(paint("  Ce niveau ne rapportera presque plus d'XP. Prochain niveau sans filet !", C.DIM))
 
 
-def dashboard(progress, total_levels=1000):
+def dashboard(progress, total_levels, max_day):
     done = sorted(progress.get("done", []))
     xp = progress.get("xp", 0)
     streak = progress.get("streak", {}).get("current", 0)
@@ -195,13 +236,16 @@ def dashboard(progress, total_levels=1000):
         cmds = sum(v.get("commands", 0) for v in hist.values())
         print(paint("  Commandes tapees depuis le debut : ", C.BOLD) + str(cmds))
     print()
-    print(paint("  Carte des 100 jours (ligne = 10 jours) :", C.BOLD))
+    print(paint("  Carte des jours (ligne = 10 jours, # = termine, + = en cours) :", C.BOLD))
     done_set = set(done)
-    for row in range(10):
+    day = 1
+    while day <= max_day:
         cells = []
         for col in range(10):
-            day = row * 10 + col + 1
-            ids = set(range((day - 1) * 10 + 1, day * 10 + 1))
+            d = day + col
+            if d > max_day:
+                break
+            ids = set(range((d - 1) * 10 + 1, d * 10 + 1))
             n = len(ids & done_set)
             if n == 10:
                 cells.append(paint("#", C.GREEN + C.BOLD))
@@ -209,11 +253,11 @@ def dashboard(progress, total_levels=1000):
                 cells.append(paint("+", C.YELLOW + C.BOLD))
             else:
                 cells.append(paint(".", C.DIM))
-        print("    jours {:>3}-{:>3} : {}".format(row * 10 + 1, row * 10 + 10, " ".join(cells)))
+        print("    jours {:>3}-{:>3} : {}".format(day, min(day + 9, max_day), " ".join(cells)))
+        day += 10
     print()
     print(paint("  Badges :", C.BOLD))
-    badges = compute_badges(done_set, streak, best)
-    for icon, name, earned in badges:
+    for icon, name, earned in compute_badges(done_set, best):
         mark = paint("[X]", C.GREEN) if earned else paint("[ ]", C.DIM)
         print("    {} {} {}".format(mark, icon, name))
     nxt = progress.get("current", 1)
@@ -221,7 +265,7 @@ def dashboard(progress, total_levels=1000):
     print(paint("  Prochain niveau : {}  ->  ./ilearn play".format(nxt if nxt <= total_levels else "TERMINE !"), C.CYAN))
 
 
-def compute_badges(done_set, streak, best):
+def compute_badges(done_set, best):
     n = len(done_set)
     return [
         ("Premier pas", "Finir le niveau 1", 1 in done_set),
@@ -233,7 +277,10 @@ def compute_badges(done_set, streak, best):
         ("Brasier", "Serie de 7 jours", best >= 7),
         ("Machine", "300 niveaux reussis", n >= 300),
         ("Sorcier", "500 niveaux reussis", n >= 500),
-        ("Legende", "1000 niveaux reussis", n >= 1000),
+        ("Admin Sys", "1000 niveaux reussis (fin Saison 1)", n >= 1000),
+        ("Agent stagiaire", "Premier niveau cyber (1001)", 1001 in done_set),
+        ("Agent confirme", "1050 niveaux reussis", n >= 1050),
+        ("Agent d'elite", "1100 niveaux reussis (fin Saison 2)", n >= 1100),
     ]
 
 

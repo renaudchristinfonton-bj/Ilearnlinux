@@ -1,0 +1,101 @@
+#!/usr/bin/env python3
+"""Simulateur pedagogique de nmap : scanne les cibles du scenario de mission.
+
+Utilisation (comme le vrai nmap) : nmap [-sV] [-O] [-F] CIBLE
+Le scenario est lu dans $ILEARN_SCENARIO (fichier JSON ecrit par le jeu).
+"""
+import json
+import os
+import sys
+
+VERSION = "7.94"
+
+
+def load_scenario():
+    path = os.environ.get("ILEARN_SCENARIO", "")
+    if path and os.path.isfile(path):
+        try:
+            with open(path, "r", encoding="utf-8") as fh:
+                return json.load(fh)
+        except (OSError, ValueError):
+            pass
+    local = os.path.join(os.getcwd(), "scenario.json")
+    if os.path.isfile(local):
+        try:
+            with open(local, "r", encoding="utf-8") as fh:
+                return json.load(fh)
+        except (OSError, ValueError):
+            pass
+    return None
+
+
+def usage():
+    print("usage: nmap [-sV] [-O] [-F] CIBLE")
+    print("Exemples : nmap 10.10.0.5 | nmap -sV 10.10.0.5 | nmap -sV -O 10.10.0.5")
+
+
+def main(argv):
+    flags = set()
+    target = None
+    skip_next = False
+    for arg in argv:
+        if skip_next:
+            skip_next = False
+            continue
+        if arg in ("-p", "--top-ports"):
+            skip_next = True
+            continue
+        if arg.startswith("-") and not arg[1:].replace(".", "").isdigit():
+            for ch in arg[1:]:
+                flags.add(ch)
+            continue
+        target = arg
+    if target is None:
+        usage()
+        return 1
+    print("Starting Nmap {} ( https://nmap.org )".format(VERSION))
+    scenario = load_scenario()
+    if scenario is None:
+        print("nmap: pas de scenario de mission (ILEARN_SCENARIO introuvable).", file=sys.stderr)
+        print("Astuce : lance nmap depuis le terminal du jeu, pendant une mission avec cible.",
+              file=sys.stderr)
+        return 1
+    host = scenario.get("hosts", {}).get(target)
+    if host is None:
+        print("Note: Host seems down. If it is really up, but blocking our ping probes, try -Pn")
+        print("Nmap done: 1 IP address (0 hosts up) scanned in 2.04 seconds")
+        return 0
+    print("Nmap scan report for {}".format(target))
+    print("Host is up (0.00042s latency).")
+    ports = [p for p in host.get("ports", []) if p.get("state", "open") == "open"]
+    hidden = 1000 - len(ports)
+    if hidden > 0:
+        print("Not shown: {} closed tcp ports (reset)".format(hidden))
+    # -sV : versions ; -O : detection OS.
+    want_ver = "s" in flags and "V" in flags
+    if want_ver:
+        print("PORT     STATE SERVICE  VERSION")
+    else:
+        print("PORT     STATE SERVICE")
+    for p in sorted(ports, key=lambda x: x.get("port", 0)):
+        if want_ver:
+            print("{}/tcp   {}  {}  {}".format(
+                p.get("port"), p.get("state", "open"), p.get("service", "?"),
+                p.get("version", "")))
+        else:
+            print("{}/tcp   {}  {}".format(
+                p.get("port"), p.get("state", "open"), p.get("service", "?")))
+    for p in host.get("ports", []):
+        if p.get("state") == "filtered":
+            print("{}/tcp   filtered  {}".format(p.get("port"), p.get("service", "?")))
+    if "O" in flags:
+        print("OS details: {}".format(host.get("os", "Linux 5.X")))
+        print("Aggressive OS guesses: Linux 5.X (95%)")
+    if want_ver:
+        print("Service detection performed. Please report any incorrect results")
+    print("Nmap done: 1 IP address (1 host up) scanned in 2.34 seconds")
+    return 0
+
+
+if __name__ == "__main__":
+    sys.exit(main(sys.argv[1:]))

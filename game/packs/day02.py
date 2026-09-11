@@ -15,7 +15,7 @@ LEVELS = [
     L(11, "Lister (ls)",
       lesson="'ls' (list) affiche le contenu du dossier courant : fichiers et sous-dossiers. "
              "C'est la commande que tu taperas des milliers de fois dans ta vie d'admin.",
-      mission="Va dans l'arene du niveau puis tape :  ls",
+      mission="Tape, juste en dessous :  ls",
       setup=SETUP_LS,
       checks=[C_cmd(r"(^|[;&|]\s*)\bls\b")],
       hints=["2 lettres : l, s.", "Tape : ls"],

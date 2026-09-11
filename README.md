@@ -1,10 +1,11 @@
-# 🐧 ILearnLinux — Deviens Admin Sys Linux en 100 jours, en jouant
+# 🐧 ILearnLinux — Du terminal à Agent Cyber, en jouant
 
-> Le Duolingo du terminal : **1000 niveaux**, **100 jours**, **100% pratique**.
-> Le jeu tourne dans un onglet, tu joues dans un autre, et il valide tes niveaux **automatiquement**.
+> Le Duolingo du terminal : **1100 niveaux**, **110 jours**, **100% pratique**.
+> **Un seul terminal suffit** : tu tapes de vraies commandes, le jeu exécute, le mentor guide, les XP pleuvent.
 
-Pas de QCM, pas de vidéos de 3 heures : ici tu **tapes des vraies commandes** sur ton vrai Linux,
-et le jeu regarde, compte, félicite. Même les flemmards progressent : 10 petits niveaux par jour suffisent.
+Pas de QCM, pas de vidéos de 3 heures : ici tu **tapes des vraies commandes** sur ton vrai Linux
+(`ls`, `grep`, `nmap`, `ssh`, `john`...), tu résous des **missions façon CTF** (flags, scans, intrusions,
+craquage, forensics), et le jeu valide **automatiquement**. 10 petits niveaux par jour suffisent.
 
 ---
 
@@ -16,31 +17,39 @@ cd Ilearnlinux
 ./install.sh
 ```
 
-C'est tout. Aucune dépendance à installer : **Python 3 suffit** (déjà présent sur tout Linux).
-L'installeur vérifie les 1000 niveaux et te propose le mode automatique (recommandé).
+C'est tout. Aucune dépendance : **Python 3 suffit** (déjà présent sur tout Linux).
+L'installeur vérifie les 1100 niveaux, les outils et les simulateurs, puis te propose un alias `ilearn`.
 
-## 🎮 Démarrage : 2 onglets
+## 🎮 Jouer : un seul terminal !
 
-| Onglet 1 — 📺 LE JEU | Onglet 2 — ⌨️ LE JOUEUR (toi) |
-|---|---|
-| `./ilearn play`  (ou `ilearn play` si alias installé) | `source tools/hook.sh` *(une seule fois par onglet — automatique si tu as dit « o » à l'installateur)* |
-| Affiche la leçon + la mission, **surveille en continu**, valide tout seul, célèbre 🎉 | Tu vas dans l'arène (`cd ...` affiché par le jeu) et tu tapes tes commandes |
+```bash
+./ilearn play        (ou 'ilearn play' avec l'alias)
+```
 
 Exemple de partie :
 
 ```
-NIVEAU 9/1000 — JOUR 1/100 — Curieux du terminal
-Leçon : Le symbole '>' redirige la sortie d'une commande vers un fichier...
-Ta mission : >> echo salut > bonjour.txt
-Arène (onglet JOUEUR) : cd /home/toi/IlearnLinux-arena/niveau-0009
-Je surveille ton onglet JOUEUR... à toi de jouer !
-Objectifs : [OK][OK]
-BRAVO ! NIVEAU 9 RÉUSSI +10 XP
+ NIVEAU 1023/1100 - JOUR 103 - Agent Cyber stagiaire
+Histoire : Un flag dort sur la cible : /home/agent/flag.txt. Connecte-toi, lis-le...
+Ta mission : >> Sur la cible : lis flag.txt, recopie-le dans reponse.txt (local).
+Dossier de mission : /home/toi/IlearnLinux-arena/niveau-1023
+agent@cyber:~$ ssh agent@10.10.0.5
+Welcome to Ubuntu 22.04 LTS (GNU/Linux)
+agent@10-10-0-5:~$ cat flag.txt
+FLAG{ssh-1}
+agent@10-10-0-5:~$ exit
+agent@cyber:~$ echo FLAG{ssh-1} > reponse.txt
+  Objectifs : [OK]
+BRAVO ! NIVEAU 1023 REUSSI +10 XP
 ```
 
-Pendant un niveau, dans l'onglet JEU : `h` = indice (−2 XP), `s` = solution, `m` = revoir la mission, `q` = pause.
+Tu te trompes ? Le **mentor** réagit (erreur expliquée, piste concrète) et t'offre un indice
+automatiquement si tu bloques vraiment. Pendant un niveau : `aide`, `mission`, `cours`,
+`indice`, `solution`, `quitter` (+ `history`, `clear`).
 
-## 🗺️ La progression : 100 jours, 10 blocs
+## 🗺️ La progression : 110 jours, 2 saisons
+
+**Saison 1 — Admin Sys Linux (jours 1–100, niveaux 1–1000)**
 
 | Jours | Niveaux | Thème |
 |---|---|---|
@@ -55,35 +64,54 @@ Pendant un niveau, dans l'onglet JEU : `h` = indice (−2 XP), `s` = solution, `
 | 81–90 | 801–900 | Scripting shell : variables, boucles, tests, fonctions |
 | 91–100 | 901–1000 | Admin pro : logs, dépannage, incidents + **MEGA-BOSS final** 👑 |
 
+**Saison 2 — Agent Cyber (jours 101–110, niveaux 1001–1100)** 🕵️
+
+| Jour | Niveaux | Mission |
+|---|---|---|
+| 101 | 1001–1010 | Bienvenue à l'agence : flags, `file`, hashes, base64, `strings` |
+| 102 | 1011–1020 | Reconnaissance : scans `nmap`, ports, versions, OS |
+| 103 | 1021–1030 | Connexion `ssh` : clés, intrusions, exfiltration de flags |
+| 104 | 1031–1040 | Chasse aux flags : `find -exec`, `grep -o`, double-base64 |
+| 105 | 1041–1050 | Mots de passe : `john`, wordlists, sel, secrets aléatoires |
+| 106 | 1051–1060 | Forensics : journaux `auth.log`, top attaquants, rapports |
+| 107 | 1061–1070 | Énumération web : `robots.txt`, `.git`, backups, secrets |
+| 108 | 1071–1080 | Pivot réseau : rebonds de machine en machine |
+| 109 | 1081–1090 | Escalade de privilèges : SUID, `sudo`, groupes, noyau |
+| 110 | 1091–1100 | **EXAMEN D'AGENT** : mini-CTF + **MEGA-BOSS final** 👑 |
+
 Programme détaillé jour par jour : [`docs/CURRICULUM.md`](docs/CURRICULUM.md).
 
 **Chaque 10ᵉ niveau est un BOSS** (révision, gros XP). Le jeu suit ton **XP**, ta **série quotidienne** 🔥,
-tes **badges** et ton **rang** (de *Curieux du terminal* 🌱 à *ADMIN SYS LINUX* 👑).
+tes **badges** et ton **rang** (de *Curieux du terminal* 🌱 à *AGENT CYBER D'ÉLITE* 👑).
 
 ## 🕹️ Commandes
 
 ```
 ./ilearn play        Jouer (reprend où tu t'es arrêté)
-./ilearn dashboard   XP, série, carte des 100 jours, badges
+./ilearn dashboard   XP, série, carte des 110 jours, badges
 ./ilearn hint        Indice pour le niveau courant
 ./ilearn solution    Solution (XP réduits, mais on apprend quand même)
 ./ilearn mission     Revoir la mission en cours
 ./ilearn goto 250    Sauter à un niveau (pratique libre)
 ./ilearn reset       Tout recommencer à zéro
-./ilearn doctor      Diagnostic : niveaux, outils, hook, progression
+./ilearn doctor      Diagnostic : niveaux, outils, simulateurs, progression
 ```
 
 ## 🔧 Comment ça marche ?
 
-- **L'arène** : chaque niveau te donne un dossier propre (`~/IlearnLinux-arena/niveau-XXXX/`).
-  Le jeu le prépare (fichiers de départ) et l'observe chaque seconde.
-- **Le hook** : un petit script bash (`tools/hook.sh`) signale au jeu chaque commande tapée
-  dans l'onglet joueur (commande + dossier courant, avec horodatage).
+- **Un vrai bash persistant** : tes commandes s'exécutent pour de vrai dans le dossier
+  de mission (`~/IlearnLinux-arena/niveau-XXXX/`), préparé à chaque niveau. Zéro simulation
+  pour le système : `ls`, `grep`, `find`, `tar`, `ps`, `sudo -n`... tout est réel.
+- **Des cibles simulées réalistes** : `nmap`, `ssh` et `john` sont des simulateurs pédagogiques
+  fournis par le jeu (dans `game/fakebin/`) : vraies sorties, vraies options, machines-cibles
+  avec fichiers et flags — sans rien installer ni casser.
 - **La validation** : 14 types de vérifications (fichier créé, contenu exact, permissions,
-  commande tapée, dossier courant...) combinables par niveau. Zéro triche possible, zéro config.
-- **La sauvegarde** : `~/.ilearnlinux/progress.json` (+ journal des commandes). Rien ne se perd.
-- **La sécurité** : le jeu ne touche **jamais** à ton système. Tout se passe dans l'arène ;
-  les commandes système utilisées sont en lecture seule, **aucun niveau n'exige root**.
+  commande tapée, dossier courant...) combinables par niveau. Les objectifs se cochent en direct.
+- **Le mentor** : explique chaque erreur (fichier introuvable, permission, faute de frappe...),
+  offre des indices automatiques après 4 puis 8 fautes. Jamais de frustration.
+- **La sauvegarde** : `~/.ilearnlinux/progress.json`. XP, série quotidienne, historique : rien ne se perd.
+- **La sécurité** : le jeu bloque les commandes destructrices (`rm -rf /`, fork-bomb, `mkfs`,
+  `dd` vers `/dev`...) avant exécution. **Aucun niveau n'exige root**, aucun `sudo` interactif.
 
 ## ❓ FAQ
 
@@ -91,32 +119,30 @@ tes **badges** et ton **rang** (de *Curieux du terminal* 🌱 à *ADMIN SYS LINU
 N'importe quel Linux avec Python 3 et bash : Ubuntu, Debian, Fedora, Arch... (Windows : via WSL).
 
 **Quels outils faut-il ?**
-Ceux de base (`tar`, `gzip`, `ping`, `ip`, `ssh`...) déjà présents sur Ubuntu/Debian.
+Ceux de base (`tar`, `gzip`, `ping`, `ip`, `ssh-keygen`...) déjà présents sur Ubuntu/Debian,
+plus les simulateurs inclus dans le jeu (`nmap`, `ssh`, `john`).
 `./ilearn doctor` te dit exactement ce qui manque éventuellement.
 
-**Le jeu ne détecte pas mes commandes ?**
-Dans l'onglet JOUEUR, tape `source tools/hook.sh` (chemin complet depuis le dépôt),
-puis rejoue ta commande. Le jeu te le rappelle tout seul au bout de 25 s. 😉
-
 **Je suis bloqué !**
-`h` pour un indice, `s` pour la solution. Mieux vaut voir la solution et continuer
-que d'abandonner : la répétition en spirale te fera recroiser la notion.
+Tape `indice` (ou attends : le mentor aide tout seul après 4 fautes), `solution` en dernier recours.
+Mieux vaut voir la solution et continuer que d'abandonner : la répétition en spirale te fera
+recroiser la notion. Et `cours` réaffiche la leçon.
 
 **Je peux refaire un niveau ?**
 Oui : `./ilearn goto NUMERO` te replace où tu veux, l'XP compte quand même.
 
 **10 niveaux par jour, c'est obligatoire ?**
 Non, c'est un rythme conseillé. La série quotidienne compte dès **1 niveau/jour**.
-Les flemmards sont les bienvenus : petit pas chaque jour > rush puis abandon.
+Petit pas chaque jour > rush puis abandon.
 
 ## 🤝 Contribuer
 
-- Les jours 1–30 sont écrits à la main (`game/packs/day01.py` … `day10.py`, `days11_20.py`, `days21_30.py`).
+- Les jours 1–30 et 101–110 sont écrits à la main (`game/packs/`).
 - Les jours 31–100 sont générés par `game/packs/generated.py` (modèles + variantes, en cours d'enrichissement).
 - Pour ajouter/enrichir un niveau : inspire-toi d'un niveau existant (même format),
-  puis lance `python3 tests/selftest.py` (doit rester à 1000 niveaux valides).
+  puis lance `python3 tests/selftest.py` (doit rester à 1100 niveaux valides, 100% vert).
 - Idées bienvenues : nouveaux blocs (Docker, Git, SQL...), traductions, mode multijoueur !
 
 ## 📜 Licence
 
-MIT — fais-en ce que tu veux, deviens admin, et partage. 🐧
+MIT — fais-en ce que tu veux, deviens agent, et partage. 🐧

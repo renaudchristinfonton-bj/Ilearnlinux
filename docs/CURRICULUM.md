@@ -1,8 +1,9 @@
-# 🗺️ Programme des 100 jours — ILearnLinux
+# 🗺️ Programme des 110 jours — ILearnLinux
 
 10 niveaux par jour. Le 10ᵉ niveau de chaque jour est un **BOSS** (révision, 25 XP).
 Les jours 11–100 fonctionnent en **spirale** : chaque jour rejoue les 10 défis du bloc
 avec de nouvelles variantes (comme Duolingo : la répétition espacée fait apprendre).
+La Saison 2 (jours 101–110) est une campagne CTF scénarisée, écrite à la main 🖊️.
 
 ## Jours 1–10 : les bases (écrits à la main 🖊️)
 
@@ -185,6 +186,73 @@ scripts cassés · compresser les logs · compter les erreurs · top IP · `/pro
 
 ---
 
+# 🕵️ Saison 2 — Agent Cyber (jours 101–110, niveaux 1001–1100, écrits à la main 🖊️)
+
+Campagne CTF scénarisée : recrutement par l'agence, missions (scans `nmap`, intrusions
+`ssh`, flags, craquage `john`, forensics, énumération web, pivot, privesc) et examen final.
+Les cibles `nmap`/`ssh` sont simulées par le jeu (sorties réalistes) ; tout le reste
+exécute de VRAIES commandes Linux.
+
+## Jour 101 : bienvenue à l'agence (1001–1010)
+
+Les 10 défis : premier flag · `file` · `md5sum` · `sha256sum` · `base64 -d` ·
+`base64` · `strings` · `grep -r` · `ls -a` · **BOSS** dossier d'enquête.
+
+## Jour 102 : reconnaissance (1011–1020)
+
+Les 10 défis : premier scan · port 80 · 3 ports · `nmap -sV` · `nmap -O` ·
+cible éteinte · port filtré · `-sV -O` · 2 cibles · **BOSS** audit express.
+
+## Jour 103 : connexion SSH (1021–1030)
+
+Les 10 défis : `ssh-keygen` · 1re connexion · flag distant · `/var/www` ·
+`whoami` distant · flag planqué · code du coffre · `root` refusé · `ssh -i` ·
+**BOSS** intrusion complète.
+
+## Jour 104 : chasse aux flags (1031–1040)
+
+Les 10 défis : `.planque` · `find -name` · ratissage · `find -exec` ·
+`grep` dans les logs · `strings | grep` · double-base64 · fichier à espaces ·
+`grep -o | wc -l` · **BOSS** grand inventaire.
+
+## Jour 105 : mots de passe (1041–1050)
+
+Les 10 défis : `john` + MD5 · `john` + SHA-1 · `john` + SHA-256 · identifier un hash ·
+le sel · `/dev/urandom` · grosse wordlist · `0 cracked` · `wc -l` · **BOSS** craquage pro.
+
+## Jour 106 : forensics (1051–1060)
+
+Les 10 défis : filtrer `auth.log` · `grep -c` · top attaquant (`cut/sort/uniq`) ·
+connexions légitimes · extraire les IP · classement complet · `tail` ·
+qui était visé · casier de l'attaquant · **BOSS** rapport d'incident.
+
+## Jour 107 : énumération web (1061–1070)
+
+Les 10 défis : `ls -R` · `robots.txt` · `.git` exposé · `.bak` oublié ·
+ratissage `grep -r` · mot de passe en commentaire · config `.git` · fichiers `~` ·
+`grep -a` dans une image · **BOSS** audit web.
+
+## Jour 108 : pivot réseau (1071–1080)
+
+Les 10 défis : reco `.6` · fiche `.7` · indice sur `.6` · saut vers `.7` ·
+bannière · flag oublié sur `.7` · double scan · versions des deux ·
+fiche de pivot · **BOSS** pivot total.
+
+## Jour 109 : escalade de privilèges (1081–1090)
+
+Les 10 défis : SUID (`-perm -4000`) · `sudo -n -l` · `-writable` · `$PATH` ·
+`id` et groupes · `uname -r` · `*.conf` · `ps aux` · `ls ~` ·
+**BOSS** énumération privesc.
+
+## Jour 110 : examen d'agent (1091–1100)
+
+Épreuve 1/5 scan · 2/5 intrusion · 3/5 craquage · 4/5 forensics · 5/5 décodage ·
+bonus web · bonus SUID · dossier partiel · dossier complet ·
+**MÉGA-BOSS FINAL** 👑 : rapport d'agent complet (100 XP) → titre d'**AGENT CYBER**.
+
+---
+
 **Rangs** : 1+ Curieux du terminal 🌱 · 51+ Explorateur ⌨️ · 151+ Bidouilleur 🛠️ ·
 301+ Power User ⚡ · 501+ Sorcier du shell 🧙 · 751+ Gardien du système 🛡️ ·
-901+ Futur Admin Sys 🚀 · 1000 ADMIN SYS LINUX 👑
+901+ Futur Admin Sys 🚀 · 1000 ADMIN SYS LINUX 👑 · 1001+ Agent Cyber stagiaire 🕵️ ·
+1041+ Agent Cyber 💻 · 1081+ Agent Cyber confirmé 🎖️ · 1100 AGENT CYBER D'ÉLITE 👑

@@ -1,0 +1,110 @@
+#!/usr/bin/env python3
+"""Simulateur pedagogique de John the Ripper (craquage par dictionnaire).
+
+Utilisation : john --wordlist=MOTS.txt HASH.txt
+Le fichier de hash contient des lignes "utilisateur:hash" ou juste "hash".
+Formats reconnus : md5 (32 car.), sha1 (40), sha256 (64).
+"""
+import hashlib
+import os
+import sys
+
+
+def usage():
+    print("usage: john --wordlist=MOTS.txt HASH.txt")
+    print("Exemple : john --wordlist=mots.txt hash.txt")
+
+
+def detect_kind(text):
+    text = text.strip().lower()
+    if len(text) == 32 and all(c in "0123456789abcdef" for c in text):
+        return "md5"
+    if len(text) == 40 and all(c in "0123456789abcdef" for c in text):
+        return "sha1"
+    if len(text) == 64 and all(c in "0123456789abcdef" for c in text):
+        return "sha256"
+    return None
+
+
+def digest(kind, word):
+    data = word.encode("utf-8", "replace")
+    if kind == "md5":
+        return hashlib.md5(data).hexdigest()
+    if kind == "sha1":
+        return hashlib.sha1(data).hexdigest()
+    return hashlib.sha256(data).hexdigest()
+
+
+def main(argv):
+    wordlist = None
+    hashfile = None
+    i = 0
+    while i < len(argv):
+        arg = argv[i]
+        if arg in ("-h", "--help"):
+            usage()
+            return 0
+        if arg.startswith("--wordlist="):
+            wordlist = arg.split("=", 1)[1]
+        elif arg == "--wordlist" and i + 1 < len(argv):
+            wordlist = argv[i + 1]
+            i += 1
+        elif arg.startswith("--format=") or arg.startswith("--"):
+            pass
+        elif arg.startswith("-"):
+            pass
+        elif hashfile is None:
+            hashfile = arg
+        i += 1
+    if hashfile is None:
+        usage()
+        return 1
+    if wordlist is None:
+        print("Aucune wordlist : precise --wordlist=MOTS.txt")
+        print("Exemple : john --wordlist=mots.txt {}".format(hashfile))
+        return 1
+    if not os.path.isfile(hashfile):
+        print("fopen: {}: No such file or directory".format(hashfile))
+        return 1
+    if not os.path.isfile(wordlist):
+        print("fopen: {}: No such file or directory".format(wordlist))
+        return 1
+    with open(hashfile, "r", encoding="utf-8", errors="replace") as fh:
+        hash_lines = [ln.strip() for ln in fh if ln.strip()]
+    with open(wordlist, "r", encoding="utf-8", errors="replace") as fh:
+        words = [ln.strip() for ln in fh if ln.strip()]
+    targets = []
+    for ln in hash_lines:
+        if ":" in ln:
+            who, _, h = ln.partition(":")
+        else:
+            who, h = "?", ln
+        kind = detect_kind(h)
+        if kind:
+            targets.append((who.strip() or "?", h.strip().lower(), kind))
+    if not targets:
+        print("No password hashes loaded (format non reconnu : md5/sha1/sha256 attendu)")
+        return 1
+    names = {"md5": "Raw-MD5", "sha1": "Raw-SHA1", "sha256": "Raw-SHA256"}
+    print("Loaded {} password hash{} ({})".format(
+        len(targets), "es" if len(targets) > 1 else "s", names[targets[0][2]]))
+    print("Trying {} words from {}...".format(len(words), wordlist))
+    cracked = 0
+    for who, h, kind in targets:
+        found = None
+        for word in words:
+            if digest(kind, word) == h:
+                found = word
+                break
+        if found is not None:
+            cracked += 1
+            print("{:<20}({})".format(found, who))
+    left = len(targets) - cracked
+    print("{} password hash{} cracked, {} left".format(
+        cracked, "es" if cracked != 1 else "", left))
+    print("Session completed.")
+    return 0
+
+
+if __name__ == "__main__":
+    sys.exit(main(sys.argv[1:]))

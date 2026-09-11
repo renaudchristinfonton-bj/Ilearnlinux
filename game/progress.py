@@ -6,15 +6,12 @@ import os
 
 BASE_DIR = os.environ.get("ILEARN_HOME", os.path.expanduser("~/.ilearnlinux"))
 PROGRESS_FILE = os.path.join(BASE_DIR, "progress.json")
-COMMANDS_LOG = os.path.join(BASE_DIR, "commands.log")
 ARENA_DIR = os.environ.get("ILEARN_ARENA", os.path.expanduser("~/IlearnLinux-arena"))
 
 
 def ensure_dirs():
     os.makedirs(BASE_DIR, exist_ok=True)
     os.makedirs(ARENA_DIR, exist_ok=True)
-    if not os.path.exists(COMMANDS_LOG):
-        open(COMMANDS_LOG, "a", encoding="utf-8").close()
 
 
 def default_progress():
@@ -91,7 +88,7 @@ def record_completion(progress, level_id, xp_earned, n_commands, hints_used, sol
 
 
 def record_assist(progress, level_id, kind):
-    """Memorise l'usage d'un indice/solution pour ajuster l'XP (meme hors session)."""
+    """Memorise l'usage d'un indice/solution pour ajuster l'XP."""
     lid = str(level_id)
     assists = progress.setdefault("assists", {}).setdefault(lid, {"hints": 0, "solution": False})
     if kind == "hint":
@@ -114,30 +111,3 @@ def reset():
 
 def arena_path(level_id):
     return os.path.join(ARENA_DIR, "niveau-{:04d}".format(level_id))
-
-
-def read_new_log_lines(offset):
-    """Lit les lignes ajoutees au journal depuis offset. Retourne (lignes, nouvel_offset)."""
-    try:
-        size = os.path.getsize(COMMANDS_LOG)
-    except OSError:
-        return [], offset
-    if size < offset:
-        offset = 0  # journal recree / tronque
-    lines = []
-    try:
-        with open(COMMANDS_LOG, "r", encoding="utf-8", errors="replace") as fh:
-            fh.seek(offset)
-            lines = fh.read().splitlines()
-            offset = fh.tell()
-    except OSError:
-        pass
-    return lines, offset
-
-
-def parse_log_line(line):
-    """Format du hook : EPOCH\tPWD\tCOMMAND. Retourne (pwd, command)."""
-    parts = line.split("\t", 2)
-    if len(parts) == 3:
-        return parts[1], parts[2]
-    return "", line

@@ -1,9 +1,10 @@
 """Petits raccourcis pour ecrire les niveaux de facon compacte et lisible."""
 
 
-def L(id, title, lesson, mission, checks, hints=(), solution="", story="", setup=(), xp=10, boss=False):
+def L(id, title, lesson, mission, checks, hints=(), solution="", story="", setup=(), xp=10,
+      boss=False, scenario=None):
     """Construit un niveau. Le jour est deduit de l'id (10 niveaux par jour)."""
-    return {
+    level = {
         "id": id,
         "day": (id - 1) // 10 + 1,
         "title": title,
@@ -17,6 +18,9 @@ def L(id, title, lesson, mission, checks, hints=(), solution="", story="", setup
         "xp": xp,
         "boss": boss,
     }
+    if scenario is not None:
+        level["scenario"] = scenario
+    return level
 
 
 # --- Actions de preparation de l'arene ---

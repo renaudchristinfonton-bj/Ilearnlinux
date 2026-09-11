@@ -66,15 +66,15 @@ LEVELS = [
       hints=["Va d'abord dans maison/cuisine.", "Puis : cd ~"],
       solution="cd maison/cuisine puis cd ~"),
 
-    L(27, "Retour a l'arene",
-      lesson="Le jeu affiche toujours le chemin de l'arene. Pour y retourner : 'cd' + le chemin affiche. "
+    L(27, "Retour au bercail",
+      lesson="Le panneau de mission affiche toujours le dossier de depart. Pour y retourner : 'cd' + le chemin affiche. "
              "Astuce : la touche TAB complete les chemins toute seule !",
-      mission="Retourne dans l'arene du niveau avec cd et son chemin complet (affiche par le jeu).",
+      mission="Retourne au dossier de depart avec cd et son chemin complet (affiche dans le panneau de mission).",
       setup=SETUP_HOME,
       checks=[C_cwd("{ws}")],
-      hints=["Regarde le chemin 'cd ...' affiche dans la carte du niveau.",
-             "Copie-colle le dans l'onglet JOUEUR."],
-      solution="cd <chemin de l'arene>"),
+      hints=["Regarde le 'Dossier de mission' affiche dans le panneau.",
+             "Copie-colle-le dans le terminal, apres 'cd'."],
+      solution="cd <dossier de mission>"),
 
     L(28, "Chemin absolu",
       lesson="Un chemin ABSOLU part de la racine '/' (ex: /home/marie). Un chemin RELATIF part d'ou tu es (ex: maison). "
